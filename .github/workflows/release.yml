@@ -65,7 +65,7 @@ jobs:
         uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
           config: cliff-release.toml
-          args: ${{ steps.kind.outputs.kind == 'rc' && format('{0}..{1}', github.event.before, github.sha) || '--unreleased' }} --context
+          args: ${{ steps.kind.outputs.kind == 'rc' && github.event.before != '0000000000000000000000000000000000000000' && format('{0}..{1}', github.event.before, github.sha) || '--unreleased' }} --context
         env:
           OUTPUT: user-facing.json
           GITHUB_REPO: ${{ github.repository }}
