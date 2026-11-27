@@ -1,0 +1,259 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'widget/**'
+      - 'package.json'
+      - 'package-lock.json'
+  schedule:
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  prepare-release:
+    name: Prepare release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.bump.outputs.released }}
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+      prerelease: ${{ steps.kind.outputs.kind == 'rc' }}
+      commit_changes: ${{ steps.bump.outputs.commit_changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Decide release kind
+        id: kind
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if [[ "$EVENT" == push && "$MESSAGE" != *"[security]"* ]]; then
+            echo "kind=rc" >>"$GITHUB_OUTPUT"
+          else
+            echo "kind=stable" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine next version (git-cliff)
+        id: cliff_bumped
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff.toml
+          args: --bumped-version
+        env:
+          OUTPUT: bumped-version.txt
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Detect user-facing changes (git-cliff)
+        id: cliff_userfacing
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff-release.toml
+          args: ${{ steps.kind.outputs.kind == 'rc' && format('{0}..{1}', github.event.before, github.sha) || '--unreleased' }} --context
+        env:
+          OUTPUT: user-facing.json
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Count user-facing commits
+        id: userfacing
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=$(jq '[.[].commits[]] | length' user-facing.json)
+          echo "User-facing commits since the last tag: $count"
+          echo "count=$count" >>"$GITHUB_OUTPUT"
+
+      - name: Install Node.js
+        if: ${{ steps.userfacing.outputs.count != '0' && steps.kind.outputs.kind == 'stable' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+
+      - name: Bump project version
+        id: bump
+        if: ${{ steps.userfacing.outputs.count != '0' }}
+        shell: bash
+        env:
+          RELEASE_KIND: ${{ steps.kind.outputs.kind }}
+          CLIFF_BUMPED_VERSION: ${{ steps.cliff_bumped.outputs.content }}
+        run: bash scripts/bump-version.sh
+
+      - name: Generate release notes (git-cliff)
+        if: ${{ steps.bump.outputs.released == 'true' }}
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff-release.toml
+          args: --unreleased --tag ${{ steps.bump.outputs.tag }}
+        env:
+          OUTPUT: release-notes.md
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Generate CHANGELOG.md (git-cliff)
+        if: ${{ steps.bump.outputs.released == 'true' && steps.kind.outputs.kind == 'stable' }}
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
+        with:
+          config: cliff.toml
+          args: --tag ${{ steps.bump.outputs.tag }}
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Stage release files
+        if: ${{ steps.bump.outputs.released == 'true' && steps.bump.outputs.commit_changes == 'true' }}
+        run: git add package.json package-lock.json widget/.tixyel widget/src/fields.json CHANGELOG.md
+
+      - name: Stage changelog
+        if: ${{ steps.bump.outputs.released == 'true' && steps.bump.outputs.commit_changes == 'false' && steps.kind.outputs.kind == 'stable' }}
+        run: git add CHANGELOG.md
+
+      - name: Commit release (verified)
+        if: ${{ steps.bump.outputs.released == 'true' && steps.kind.outputs.kind == 'stable' }}
+        uses: qoomon/actions--create-commit@7102b1a8b3cb8716dc70dbeb6d774c375d779d2f # v1.2.5
+        with:
+          message: 'chore(release): ${{ steps.bump.outputs.tag }} [skip ci]'
+          skip-empty: true
+
+      - name: Push commit
+        if: ${{ steps.bump.outputs.released == 'true' && steps.kind.outputs.kind == 'stable' }}
+        run: git push
+
+      - name: Create tag
+        if: ${{ steps.bump.outputs.released == 'true' }}
+        run: git tag '${{ steps.bump.outputs.tag }}'
+
+      - name: Push tag
+        if: ${{ steps.bump.outputs.released == 'true' }}
+        run: git push origin 'refs/tags/${{ steps.bump.outputs.tag }}'
+
+      - name: Upload release notes
+        if: ${{ steps.bump.outputs.released == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: release-notes.md
+
+  build-artifacts:
+    name: Widget
+    needs: prepare-release
+    if: ${{ needs.prepare-release.outputs.released == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare-release.outputs.tag }}
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Prepare release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          export_dir="widget/export/$(node -p "JSON.parse(require('fs').readFileSync('widget/.tixyel', 'utf8')).version")"
+          cp "${export_dir}"/*.zip release/good-puppy-point-widgetio.zip
+          zip -j release/good-puppy-point.zip widget/dist/*
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          file: package-lock.json
+          format: spdx-json
+          output-file: release/stream-good-puppy-point-widget.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Compute SHA-256 checksums
+        shell: bash
+        working-directory: release
+        run: |
+          set -euo pipefail
+          sha256sum ./*.zip >SHA256SUMS
+
+      - name: Attest release artifacts
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: release/*.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: widget-export
+          path: release/*
+
+  publish-release:
+    name: Release
+    environment:
+      name: release
+      url: https://github.com/${{ github.repository }}/releases/tag/${{ needs.prepare-release.outputs.tag }}
+    needs:
+      - prepare-release
+      - build-artifacts
+    if: ${{ needs.prepare-release.outputs.released == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download widget artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: widget-export
+          path: dist
+
+      - name: Download release notes
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-notes
+          path: .
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          name: ${{ needs.prepare-release.outputs.tag }}
+          body_path: release-notes.md
+          prerelease: ${{ needs.prepare-release.outputs.prerelease }}
+          draft: true
+          files: dist/*
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.prepare-release.outputs.tag }}
+          LATEST: ${{ needs.prepare-release.outputs.prerelease != 'true' }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest="$LATEST"

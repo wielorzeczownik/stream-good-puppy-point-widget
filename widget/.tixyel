@@ -1,0 +1,33 @@
+{
+  "type": "single",
+  "name": "good-puppy-point",
+  "description": "A free StreamElements browser-source widget for Twitch and YouTube, a customizable Good Puppy point star with a running total.",
+  "version": "0.1.0",
+  "config": "../tixyel.config.ts",
+  "metadata": {
+    "author": "wielorzeczownik",
+    "tags": [
+      "good-puppy",
+      "points",
+      "star",
+      "counter",
+      "animation",
+      "chat",
+      "twitch",
+      "youtube",
+      "streamelements",
+      "stream-overlay",
+      "widget",
+      "obs",
+      "obs-widget",
+      "channel-points",
+      "bits"
+    ]
+  },
+  "dirs": {
+    "entry": "compiled",
+    "output": "dist",
+    "shared": "shared",
+    "extension": "export"
+  }
+}

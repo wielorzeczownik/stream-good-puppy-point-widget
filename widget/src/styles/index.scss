@@ -1,0 +1,144 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: transparent;
+}
+
+#widget {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  visibility: hidden;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  color: var(--text-color);
+}
+
+.stars {
+  position: relative;
+  width: calc(var(--star-size) * 1.3);
+  height: calc(var(--star-size) * 1.15);
+}
+
+.star-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.star {
+  stroke-width: 0.38;
+  stroke-linejoin: round;
+}
+
+.stage[data-wobble] .star {
+  filter: url('#wobble');
+}
+
+.star--main {
+  fill: var(--star-color);
+  stroke: var(--star-color);
+}
+
+.star--small {
+  position: absolute;
+  width: calc(var(--star-size) * 0.2);
+  aspect-ratio: 1;
+  opacity: 0;
+  fill: var(--small-star-color);
+  stroke: var(--small-star-color);
+}
+
+.star--top {
+  top: 8%;
+  left: 2%;
+  rotate: -12deg;
+}
+
+.star--bottom {
+  right: 0;
+  bottom: 18%;
+  rotate: 14deg;
+}
+
+.star-main {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: var(--star-size);
+  height: var(--star-size);
+  margin: auto;
+  opacity: 0;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  svg,
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &__text {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 12%;
+    font-size: var(--font-size);
+    font-weight: bold;
+    line-height: 1;
+    text-align: center;
+    white-space: pre;
+  }
+}
+
+.total {
+  margin-top: calc(var(--star-size) * -0.08);
+  font-size: var(--total-font-size);
+  font-weight: bold;
+  color: var(--total-color, var(--text-color));
+  text-align: center;
+  white-space: pre-line;
+  opacity: 0;
+
+  &[data-style='pill'] {
+    position: relative;
+    padding: 0.3em 0.9em 0.35em;
+    rotate: -2deg;
+
+    &::before {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      content: '';
+      background: var(--total-style-color, var(--star-color));
+      border-radius: 0.9em 1.3em 0.8em 1.1em / 1em 0.8em 1.2em 0.9em;
+    }
+  }
+
+  .stage[data-wobble] &[data-style='pill']::before {
+    filter: url('#wobble');
+  }
+
+  &[data-style='outline'] {
+    paint-order: stroke fill;
+    -webkit-text-stroke: 0.2em var(--total-style-color, var(--star-color));
+  }
+}

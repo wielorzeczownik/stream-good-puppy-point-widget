@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>wielorzeczownik/.github"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/^widget/src/index\\.html$/"],
+      "matchStrings": [
+        "cdn\\.jsdelivr\\.net/npm/@tixyel/streamelements@(?<currentValue>[^/]+)"
+      ],
+      "depNameTemplate": "@tixyel/streamelements",
+      "datasourceTemplate": "npm"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["@tixyel/streamelements"],
+      "groupName": "streamelements"
+    }
+  ]
+}

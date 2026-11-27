@@ -1,0 +1,307 @@
+{
+  "widgetName": {
+    "type": "hidden",
+    "value": "Good Puppy Point"
+  },
+  "widgetAuthor": {
+    "type": "hidden",
+    "value": "wielorzeczownik"
+  },
+  "widgetVersion": {
+    "type": "hidden",
+    "value": "0.1.0"
+  },
+  "btnTestAnimation": {
+    "type": "button",
+    "label": "Test animation",
+    "group": "General"
+  },
+  "btnTestMinus": {
+    "type": "button",
+    "label": "Test minus animation",
+    "group": "General"
+  },
+  "btnResetTotal": {
+    "type": "button",
+    "label": "Reset total",
+    "group": "General"
+  },
+  "amount": {
+    "label": "Points per trigger",
+    "type": "number",
+    "value": 1,
+    "min": 1,
+    "group": "General"
+  },
+  "enableCommand": {
+    "label": "Enable chat command",
+    "type": "checkbox",
+    "value": true,
+    "group": "Triggers"
+  },
+  "commandName": {
+    "label": "Chat command names (without !, comma-separated)",
+    "type": "text",
+    "value": "goodpuppy",
+    "group": "Triggers"
+  },
+  "commandPermission": {
+    "label": "Who can use the command",
+    "type": "dropdown",
+    "value": "moderators",
+    "options": {
+      "moderators": "Broadcaster and moderators",
+      "everyone": "Everyone"
+    },
+    "group": "Triggers"
+  },
+  "maxAmount": {
+    "label": "Most points one command can give (!goodpuppy 5)",
+    "type": "number",
+    "value": 10,
+    "min": 1,
+    "group": "Triggers"
+  },
+  "commandCooldown": {
+    "label": "Cooldown per person for chat commands (seconds, 0 = off)",
+    "type": "number",
+    "value": 10,
+    "min": 0,
+    "group": "Triggers"
+  },
+  "enableTotalCommand": {
+    "label": "Enable command that shows the total",
+    "type": "checkbox",
+    "value": true,
+    "group": "Triggers"
+  },
+  "totalCommandName": {
+    "label": "Show total command names (without !, comma-separated)",
+    "type": "text",
+    "value": "goodpuppies",
+    "group": "Triggers"
+  },
+  "enableReward": {
+    "label": "Enable Channel Points (Twitch only)",
+    "type": "checkbox",
+    "value": true,
+    "group": "Triggers"
+  },
+  "rewardName": {
+    "label": "Channel Points reward names (exact, comma-separated, Name=5 for its own points)",
+    "type": "text",
+    "value": "Good Puppy point",
+    "group": "Triggers"
+  },
+  "enableBits": {
+    "label": "Enable Bits (Twitch only)",
+    "type": "checkbox",
+    "value": false,
+    "group": "Triggers"
+  },
+  "minBits": {
+    "label": "Minimum Bits in one cheer (gives one point per Bit)",
+    "type": "number",
+    "value": 100,
+    "min": 1,
+    "group": "Triggers"
+  },
+  "enableMinusCommand": {
+    "label": "Enable minus command",
+    "type": "checkbox",
+    "value": false,
+    "group": "Minus points"
+  },
+  "minusCommandName": {
+    "label": "Minus command names (without !, comma-separated)",
+    "type": "text",
+    "value": "badpuppy",
+    "group": "Minus points"
+  },
+  "maxMinusAmount": {
+    "label": "Most points one minus command can take (!badpuppy 5)",
+    "type": "number",
+    "value": 10,
+    "min": 1,
+    "group": "Minus points"
+  },
+  "enableMinusReward": {
+    "label": "Enable minus Channel Points (Twitch only)",
+    "type": "checkbox",
+    "value": false,
+    "group": "Minus points"
+  },
+  "minusRewardName": {
+    "label": "Minus reward names (exact, comma-separated, Name=5 takes 5 away, no minus sign)",
+    "type": "text",
+    "value": "Bad Puppy point",
+    "group": "Minus points"
+  },
+  "minusStarText": {
+    "label": "Minus star text ({amount}, {total}, {user}, \\n = new line)",
+    "type": "text",
+    "value": "-{amount}\\nBad Puppy\\npoint",
+    "group": "Minus points"
+  },
+  "minusStarColor": {
+    "label": "Minus star color",
+    "type": "colorpicker",
+    "value": "#F8C8C8",
+    "group": "Minus points"
+  },
+  "minusTextColor": {
+    "label": "Minus text color (empty = same as text)",
+    "type": "colorpicker",
+    "value": "",
+    "group": "Minus points"
+  },
+  "minusCustomImageUrl": {
+    "label": "Minus star image (empty = same as the normal star)",
+    "type": "image-input",
+    "value": "",
+    "group": "Minus points"
+  },
+  "minusShowSmallStars": {
+    "label": "Show the small stars on minus points",
+    "type": "checkbox",
+    "value": true,
+    "group": "Minus points"
+  },
+  "minusSoundUrl": {
+    "label": "Minus sound (mp3/ogg, empty = same as the normal sound)",
+    "type": "sound-input",
+    "value": "",
+    "group": "Minus points"
+  },
+  "starText": {
+    "label": "Star text ({amount}, {total}, {user}, \\n = new line)",
+    "type": "text",
+    "value": "+{amount}\\nGood Puppy\\npoint",
+    "group": "Text"
+  },
+  "showTotal": {
+    "label": "Show total under the star",
+    "type": "checkbox",
+    "value": true,
+    "group": "Total"
+  },
+  "totalText": {
+    "label": "Total text ({total}, {amount}, {user})",
+    "type": "text",
+    "value": "{total} Good Puppy points",
+    "group": "Total"
+  },
+  "totalFontSize": {
+    "label": "Total font size (px)",
+    "type": "number",
+    "value": 26,
+    "min": 8,
+    "max": 200,
+    "group": "Total"
+  },
+  "totalTextColor": {
+    "label": "Total text color (empty = same as text)",
+    "type": "colorpicker",
+    "value": "",
+    "group": "Total"
+  },
+  "totalStyle": {
+    "label": "Total background",
+    "type": "dropdown",
+    "value": "pill",
+    "options": {
+      "pill": "Sticker",
+      "outline": "Outline",
+      "none": "None"
+    },
+    "group": "Total"
+  },
+  "totalStyleColor": {
+    "label": "Sticker / outline color (empty = star color)",
+    "type": "colorpicker",
+    "value": "",
+    "group": "Total"
+  },
+  "fontFamily": {
+    "label": "Font",
+    "type": "googleFont",
+    "value": "Short Stack",
+    "group": "Text"
+  },
+  "fontSize": {
+    "label": "Star text size (px)",
+    "type": "slider",
+    "value": 44,
+    "min": 8,
+    "max": 200,
+    "group": "Text",
+    "step": 1
+  },
+  "textColor": {
+    "label": "Text color",
+    "type": "colorpicker",
+    "value": "#111111",
+    "group": "Text"
+  },
+  "starSize": {
+    "label": "Widget size: star width (px)",
+    "type": "slider",
+    "value": 420,
+    "min": 100,
+    "max": 1200,
+    "group": "Appearance",
+    "step": 10
+  },
+  "starColor": {
+    "label": "Star color",
+    "type": "colorpicker",
+    "value": "#C8E2F8",
+    "group": "Appearance"
+  },
+  "smallStarColor": {
+    "label": "Small stars color (empty = same as star)",
+    "type": "colorpicker",
+    "value": "",
+    "group": "Appearance"
+  },
+  "starWobble": {
+    "label": "Wobble and squash the drawn star (not a custom image)",
+    "type": "checkbox",
+    "value": true,
+    "group": "Appearance"
+  },
+  "customImageUrl": {
+    "label": "Custom star image (replaces the big star)",
+    "type": "image-input",
+    "value": "",
+    "group": "Appearance"
+  },
+  "showSmallStars": {
+    "label": "Show the small stars (turn off if they clash with your image)",
+    "type": "checkbox",
+    "value": true,
+    "group": "Appearance"
+  },
+  "holdDuration": {
+    "label": "Time on screen (seconds)",
+    "type": "number",
+    "value": 3,
+    "min": 0,
+    "max": 30,
+    "group": "Appearance"
+  },
+  "soundUrl": {
+    "label": "Sound (mp3/ogg, empty = built-in pop)",
+    "type": "sound-input",
+    "value": "",
+    "group": "Sound"
+  },
+  "soundVolume": {
+    "label": "Sound volume (%)",
+    "type": "number",
+    "value": 80,
+    "min": 0,
+    "max": 100,
+    "group": "Sound"
+  }
+}

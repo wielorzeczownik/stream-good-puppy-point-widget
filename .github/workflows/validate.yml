@@ -1,0 +1,149 @@
+name: Validate
+
+on: pull_request
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # renovate: datasource=github-releases depName=rhysd/actionlint extractVersion=^v(?<version>.+)$
+  ACTIONLINT_VERSION: 1.7.12
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            code:
+              - '.github/workflows/validate.yml'
+              - 'widget/src/**'
+              - 'tests/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig.json'
+              - 'eslint.config.ts'
+              - 'vite.config.ts'
+              - 'vitest.config.ts'
+              - 'tixyel.config.ts'
+              - '.stylelintrc.json'
+            shell:
+              - '.github/workflows/validate.yml'
+              - 'scripts/**'
+            markdown:
+              - '.github/workflows/validate.yml'
+              - '**/*.md'
+            workflows:
+              - '.github/workflows/**'
+            format:
+              - '.github/workflows/validate.yml'
+              - '.prettierrc'
+              - '.prettierignore'
+              - '**/*.json'
+              - '**/*.md'
+              - '**/*.yml'
+              - '**/*.yaml'
+              - '**/*.ts'
+              - '**/*.html'
+              - '**/*.scss'
+
+      - name: Install Node.js
+        if: ${{ steps.filter.outputs.format == 'true' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        id: install
+        if: ${{ steps.filter.outputs.format == 'true' }}
+        run: npm ci
+
+      - name: Format check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.filter.outputs.format == 'true' }}
+        run: npm run format:check
+
+      - name: Install shfmt and shellcheck
+        if: ${{ !cancelled() && steps.filter.outputs.shell == 'true' }}
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: shfmt,shellcheck
+
+      - name: Format check shell scripts
+        if: ${{ !cancelled() && steps.filter.outputs.shell == 'true' }}
+        run: shfmt --diff scripts/
+
+      - name: Lint shell scripts
+        if: ${{ !cancelled() && steps.filter.outputs.shell == 'true' }}
+        run: shellcheck scripts/*.sh
+
+      - name: Lint workflows
+        if: ${{ !cancelled() && steps.filter.outputs.workflows == 'true' }}
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          version: ${{ env.ACTIONLINT_VERSION }}
+          shellcheck: true
+
+      - name: Lint Markdown
+        if: ${{ !cancelled() && steps.filter.outputs.markdown == 'true' }}
+        uses: DavidAnson/markdownlint-cli2-action@696eb3f2509270d7b882d2aa68347bc676e7af34 # v25.0.0
+        with:
+          globs: |
+            **/*.md
+            !node_modules/**
+            !CHANGELOG.md
+
+  code:
+    name: Code
+    needs: checks
+    if: ${{ !cancelled() && needs.checks.outputs.code == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: package.json
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Lint SCSS
+        run: npm run lint:scss
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build

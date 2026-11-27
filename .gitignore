@@ -1,0 +1,13 @@
+node_modules/
+widget/compiled/
+dist/
+export/
+.vscode/
+.DS_Store
+.idea/
+.vite/
+*.tsbuildinfo
+coverage/
+.env
+.env.local
+.env.*.local

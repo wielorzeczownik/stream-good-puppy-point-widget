@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Good Puppy Point</title>
+    <link href="styles/index.scss" rel="stylesheet" />
+    <script type="module" src="scripts/index.ts"></script>
+  </head>
+  <body>
+    <div id="widget">
+      <script src="https://cdn.jsdelivr.net/npm/@tixyel/streamelements@7.15.0/dist/index.umd.js"></script>
+      <svg class="star-defs" aria-hidden="true">
+        <symbol id="star" viewBox="-1.35 -1.35 2.7 2.7">
+          <path
+            d="M0.087,-1.048 L0.274,-0.673 Q0.375,-0.471 0.600,-0.397 L1.019,-0.260 L0.600,0.022 Q0.375,0.173 0.429,0.385 L0.529,0.779 L0.204,0.585 Q0.029,0.481 -0.143,0.582 L-0.462,0.769 L-0.405,0.394 Q-0.375,0.192 -0.599,0.105 L-1.015,-0.058 L-0.493,-0.333 Q-0.212,-0.481 -0.107,-0.679 Z"
+          />
+        </symbol>
+        <filter id="wobble" color-interpolation-filters="sRGB">
+          <feTurbulence
+            id="wobble-noise"
+            type="fractalNoise"
+            baseFrequency="0.02"
+            numOctaves="2"
+            seed="1"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            scale="8"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </svg>
+      <div id="stage" class="stage">
+        <div class="stars">
+          <svg
+            id="star-small-top"
+            class="star star--small star--top"
+            aria-hidden="true"
+          >
+            <use href="#star" />
+          </svg>
+          <div id="star-main" class="star-main">
+            <svg id="star-shape" class="star star--main" aria-hidden="true">
+              <use href="#star" />
+            </svg>
+            <img id="star-image" class="star-main__image" alt="" hidden />
+            <p id="star-text" class="star-main__text"></p>
+          </div>
+          <svg
+            id="star-small-bottom"
+            class="star star--small star--bottom"
+            aria-hidden="true"
+          >
+            <use href="#star" />
+          </svg>
+        </div>
+        <p id="star-total" class="total"></p>
+      </div>
+    </div>
+
+    <div id="development-panel" class="development-panel">
+      <div class="development-panel__header">Dev Panel - Good Puppy Point</div>
+
+      <div class="development-panel__section">
+        <div class="development-panel__section-title">Text (\n = new line)</div>
+        <input id="development-star-text" type="text" spellcheck="false" />
+        <input id="development-total-text" type="text" spellcheck="false" />
+      </div>
+
+      <div class="development-panel__section">
+        <div class="development-panel__section-title">Colors</div>
+        <input id="development-star-color" type="color" />
+        <input id="development-text-color" type="color" />
+      </div>
+
+      <div class="development-panel__section">
+        <div class="development-panel__section-title">Custom image URL</div>
+        <input id="development-image-url" type="text" spellcheck="false" />
+      </div>
+
+      <div class="development-panel__section">
+        <div class="development-panel__section-title">Trigger</div>
+        <button id="development-trigger-command">via chat command</button>
+        <button id="development-trigger-points">via Channel Points</button>
+        <button id="development-trigger-bits">via Bits</button>
+        <button id="development-trigger-minus">minus command</button>
+        <button id="development-reset">Reset total</button>
+      </div>
+    </div>
+  </body>
+</html>
